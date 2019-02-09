@@ -36,8 +36,8 @@ for file in diff:
 
     #shift longitudes to 0-360º
     call(["ncks", "-O", "--msa_usr_rdr", "-d", "lon,0.0,180.0", "-d", "lon,-180.0,0.0",file,new_file])
-
     call(["ncap2", "-O", "-s", "where(lon<0) lon=lon+360", os.path.splitext(file)[0]+"-0-360.nc", new_file])
+
     #edit attributes
     call(["ncatted","-O","-a","valid_min,lon,o,f,0.0",new_file])
     call(["ncatted","-O","-a","valid_max,lon,o,f,360.0", new_file])
