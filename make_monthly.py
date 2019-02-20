@@ -21,7 +21,6 @@ for y in range(2019,2020):
         input_string="/mnt/r01/data/goes-poes_ghrsst/daily/"+str(y)+str(f"{m:02d}")+'*.nc'
         monthly_file=str(y)+str(f"{m:02d}")+"-gp-monthly.nc"
 
-
         list1=['ncea','-v','analysed_sst,sea_ice_fraction']
         list2=glob.glob(input_string)
         print("there are "+str(len(list2))+" daily files")
