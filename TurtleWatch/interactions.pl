@@ -9,7 +9,7 @@ system("umask 022");
 #system("rm sst.nc");
 #system("rm sst-celsius.nc");
 system("rm *.nc");
-system("rm nteractions.png");
+system("rm interactions.png");
 system("rm contour*.txt");
 system("rm temp.grd");
 system("rm temp.png");
@@ -20,5 +20,6 @@ system("R CMD BATCH interactions.R");
 ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(); $year += 1900; $mon++;
 
 $subject = "TurtleWatch map for $mon/$mday/$year";
-system("mutt -s \"$subject\" -a interactions.png -- melanie.abecassis\@noaa.gov < message.txt");
+#system("mutt -s \"$subject\" -a interactions.pdf -- melanie.abecassis\@noaa.gov < message.txt");
+#system("mutt -s \"$subject\" -a interactions.png -- melanie.abecassis\@noaa.gov < message.txt");
 

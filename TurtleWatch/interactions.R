@@ -6,8 +6,15 @@ source('../../../scale.R')
 jet.colors <-colorRampPalette(c("blue", "#007FFF", "cyan","#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
 
 
+pdf('interactions.pdf',width=10.95,height=4.45,onefile=TRUE,bg='white')
+T=read.csv('interactions-2019.csv',header=TRUE)
+
+for (index in 1:dim(T)[1]) {
+#i=1
+
+
 #temperature basemap
-junk <- GET('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/goes-poes-1d-ghrsst-RAN.nc?analysed_sst[(last)][(20):1:(45)][(185):1:(235)]', write_disk("sst.nc"))
+junk <- GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/goes-poes-1d-ghrsst-RAN.nc?analysed_sst[(',T$date[index],')][(20):1:(45)][(185):1:(235)]',sep=''), write_disk("sst.nc"))
 nc=nc_open('sst.nc')
 v1=nc$var[[1]]
 sst_K=ncvar_get(nc,v1)
@@ -29,10 +36,10 @@ breaks=seq(50,83,0.05)
 n=length(breaks)-1
 c=jet.colors(n)
 
-png('interactions.png',width=10.95,height=4.45, units="in",bg='white',res=96)
+#png('interactions.png',width=10.95,height=4.45, units="in",bg='white',res=96)
 
 layout(matrix(c(1,2,3,0,4,0), nrow=1, ncol=2), widths=c(8,1), heights=4)
-layout.show(2)
+#layout.show(2)
 
 par(mar=c(3,3,3,1),las=1)
 image(lon2,lat2,sst_F,col=c,breaks=breaks,xlab='',ylab='',axes=FALSE,xaxs='i',yaxs='i',asp=1,main=paste("Sea Surface Temperature : ",sst.date1,sep=''),cex.main=1.1,ylim=c(20,38))
@@ -49,11 +56,6 @@ ncvar_put(ncout,tmp_def,sst_c)
 nc_close(ncout)
 
 
-#system("gmt grdcontour \"sst.nc?analysed_sst\" -Jm0.05i -C265.0944 -Dcontour_17.5_%d.txt -Q50")
-#system("gmt grdcontour \"sst.nc?analysed_sst\" -Jm0.05i -C265.7056 -Dcontour_18.6_%d.txt -Q50")
-
-#system("gmt grdcontour \"sst.nc?analysed_sst\" -Jm0.05i -C17.5 -Dcontour_17.5_%d.txt -Q50")
-#system("gmt grdcontour \"sst.nc?analysed_sst\" -Jm0.05i -C18.6 -Dcontour_18.6_%d.txt -Q50")
 system("gmt grdcontour \"sst-celsius.nc?sst\" -Jm0.05i -C17.5 -Dcontour_17.5_%d.txt")
 system("gmt grdcontour \"sst-celsius.nc?sst\" -Jm0.05i -C18.6 -Dcontour_18.6_%d.txt")
 
@@ -132,16 +134,18 @@ lines(c(180,240),c(30,30),lwd=2)
 lines(c(180,240),c(35,35),lwd=2)
 
 #contour labels
-I=which(sst_F>=63.4 & sst_F<=63.6,arr.ind=TRUE)
-x=which(lon2[I[,1]]>=204.9 & lon2[I[,1]]<=205.1)
+#I=which(sst_c>=16.9 & sst_c<=17.1,arr.ind=TRUE)
+I=which(sst_c>=17.4 & sst_c<=17.6,arr.ind=TRUE)
+x=which(lon2[I[,1]]>=212.9 & lon2[I[,1]]<=213.1)
 ind=I[x[1],]
-if (lat2[ind[2]]<38) boxed.labels(lon2[ind[1]],lat2[ind[2]],'63.5',bg="white",border=NA)
+if (lat2[ind[2]]<38) boxed.labels(lon2[ind[1]],lat2[ind[2]],'17.5',bg="white",border=NA)
 
-I=which(sst_F>=65.4 & sst_F<=65.6,arr.ind=TRUE)
+I=which(sst_c>=18.4 & sst_c<=18.6,arr.ind=TRUE)
 x=which(lon2[I[,1]]>=186 & lon2[I[,1]]<=187)
 ind=I[x[1],]
-if (lat2[ind[2]]<38) boxed.labels(lon2[ind[1]],lat2[ind[2]],'65.5',bg="white",border=NA)
+if (lat2[ind[2]]<38) boxed.labels(lon2[ind[1]],lat2[ind[2]],'18.5',bg="white",border=NA)
 
+points(T$lon[index],T$lat[index],pch=20,cex=1.8)
 
 #scale
 par(mar=c(3,1,3,3),las=1)
@@ -149,6 +153,10 @@ image.scale(sst_F, col=c, breaks=breaks, horiz=FALSE, yaxt="n",xlab='',ylab='',m
 axis(4)
 box()
 
+contour_files=dir(path = '.', pattern = "^contour")
+file.remove("sst-celsius.nc","sst.nc",contour_files)
+
+}
 dev.off()
 
 
