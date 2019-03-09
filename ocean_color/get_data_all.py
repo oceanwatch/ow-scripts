@@ -60,7 +60,7 @@ if (len(diffM)>0):
 
 #make list of files at oceandata:
 for y in range(1997,2020):
-    page  = requests.get("https://oceandata.sci.gsfc.nasa.gov/SeaWiFS/Mapped/8Day/9km/chlor_a/"+str(y)+"/")
+    page  = requests.get("https://oceandata.sci.gsfc.nasa.gov/SeaWiFS/Mapped/8-Day/9km/chlor_a/"+str(y)+"/")
     soup = BeautifulSoup(page.text,'html.parser')
     
     f = open("list8d.txt","w")
