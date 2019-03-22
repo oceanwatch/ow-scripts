@@ -7,14 +7,18 @@ jet.colors <-colorRampPalette(c("blue", "#007FFF", "cyan","#7FFF7F", "yellow", "
 
 
 pdf('interactions.pdf',width=10.95,height=4.45,onefile=TRUE,bg='white')
-T=read.csv('interactions-2019.csv',header=TRUE)
+T=read.csv('2019-03-21_DRAFT.csv',header=TRUE)
+#T=read.csv('interactions-2019.csv',header=TRUE)
+
+dates=strptime(T$interaction_date,'%Y-%m-%d',tz = 'GMT')
+dates_day_before=dates-3600*24
 
 for (index in 1:dim(T)[1]) {
 #i=1
 
 
 #temperature basemap
-junk <- GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/goes-poes-1d-ghrsst-RAN.nc?analysed_sst[(',T$date[index],')][(20):1:(45)][(185):1:(235)]',sep=''), write_disk("sst.nc"))
+junk <- GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/goes-poes-1d-ghrsst-RAN.nc?analysed_sst[(',dates[index],')][(20):1:(45)][(185):1:(235)]',sep=''), write_disk("sst.nc"))
 nc=nc_open('sst.nc')
 v1=nc$var[[1]]
 sst_K=ncvar_get(nc,v1)
@@ -99,7 +103,7 @@ I=which(len==max(len))
 
 p2=rep(NA,3)
 c2=read.table(l[I],header=FALSE,skip=1)
-print(paste("l=",dim(c2)[1]))
+#print(paste("l=",dim(c2)[1]))
 if (dim(c2)[1]>1) {
 	lines(c2[,1]+360,c2[,2],lwd=2)
 	p2=rbind(p2,c2)
@@ -145,7 +149,7 @@ x=which(lon2[I[,1]]>=186 & lon2[I[,1]]<=187)
 ind=I[x[1],]
 if (lat2[ind[2]]<38) boxed.labels(lon2[ind[1]],lat2[ind[2]],'18.5',bg="white",border=NA)
 
-points(T$lon[index],T$lat[index],pch=20,cex=1.8)
+points(T$Dec_Long[index]+360,T$Dec_Lat[index],pch=20,cex=1.8)
 
 #scale
 par(mar=c(3,1,3,3),las=1)
