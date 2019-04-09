@@ -7,9 +7,6 @@ source('../../../scale.R')
 library(ncdf4)
 library(httr)
 
-lon2=seq(120,260,0.05)
-lat2=seq(0,55,0.05)
-
 #junk <- GET('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/pf5-3-1982-2018-mean.nc?sea_surface_temperature[(55):1:(0)][(120):1:(260)]', write_disk("pf5.3-1982-2018-0-55N-120-260E-mean.nc"))
 
 nc=nc_open('pf5.3-1982-2017-0-55N-120-260E-mean.nc')
@@ -17,11 +14,6 @@ v1=nc$var[[1]]
 clim=ncvar_get(nc,v1)
 lon=v1$dim[[1]]$vals
 lat=v1$dim[[2]]$vals
-
-#clim=read.table('sst-clim-1982-2016-tot.dat',header=FALSE)
-#clim=as.matrix(clim)
-#anom=read.table('sst-anom-2017-tot.dat',header=FALSE)
-#anom=as.matrix(anom)
 
 #climatology
 breaks=seq(0,31,0.05)
@@ -36,10 +28,8 @@ c=jet.colors(n)
 layout(matrix(c(1,2,3,0,4,0), nrow=1, ncol=2), widths=c(9,1), heights=4)
 
 par(mar=c(3,3,3,1))
-#image(lon2,lat2,clim2,col=c,breaks=breaks,xlab='',ylab='',axes=FALSE,xaxs='i',yaxs='i',asp=1,xlim=c(120,260),ylim=c(0,55),main='Climatology : 1982 - 2016')
 image(lon,rev(lat),clim[,dim(clim)[2]:1],col=c,breaks=breaks,xlab='',ylab='',axes=FALSE,xaxs='i',yaxs='i',asp=1,xlim=c(120,260),ylim=c(0,55),main='Climatology : 1982 - 2017')
 par(new=TRUE)
-#nice.map(lon2,lat2,4)
 nice.map(lon,rev(lat),4)
 lines(c(180,240),c(5,5),lwd=7)
 lines(c(180,240),c(45,45),lwd=7)
