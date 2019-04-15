@@ -101,9 +101,9 @@ box()
 T=read.table('mean-sst-1982-2018-pf3.dat',header=TRUE)
 n=dim(T)[1]
 
-#plot(1:(n-12),T[1:(n-12),1],type='l',axes=FALSE,xlab='',main='SST',ylab='(ºC)',pch=20,lwd=6, col='#17a589')
-plot(1:(n-12),T[1:(n-12),1],type='l',axes=FALSE,xlab='',main='SST',ylab='(ºC)',pch=20,lwd=3, col=1)
-lines((n-12):n,T[(n-12):n,1],col="#3498db",lwd=3)
+plot(1:(n-12),T[1:(n-12),1],type='l',axes=FALSE,xlab='',main='SST',ylab='(ºC)',pch=20,lwd=6, col='#95a5a6')
+#plot(1:(n-12),T[1:(n-12),1],type='l',axes=FALSE,xlab='',main='SST',ylab='(ºC)',pch=20,lwd=3, col=1)
+lines((n-12):n,T[(n-12):n,1],col="#5dade2",lwd=6)
 #points((n-12):n,T[(n-12):n,1],col=4,pch=20)
 axis(2)
 axis(1,seq(5,n,12),1982:2018)
@@ -117,8 +117,10 @@ gp=gp[,,-1]
 gp_mean=rep(NA,192)
 for (i in 1:192) gp_mean[i]=mean(gp[,,i],na.rm=TRUE)
 
-lines(253:444,gp_mean-273.15,col=1,lwd=2)
+lines(253:432,gp_mean[1:180]-273.15,col=1,lwd=2)
+lines(432:444,gp_mean[180:192]-273.15,col=4,lwd=2)
 
+legend('topleft',legend=c('PF5.3','geopolar'),lwd=c(6,2),col=c("#95a5a6",1))
 
 n=length(T[,1])
 
