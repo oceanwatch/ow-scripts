@@ -30,14 +30,14 @@ par(mar=c(3,3,3,1))
 image(lon,rev(lat),log(clim[,dim(clim)[2]:1]),col=c,breaks=breaks,xlab='',ylab='',axes=FALSE,xaxs='i',yaxs='i',asp=1,xlim=c(120,260),ylim=c(0,55),main='Climatology : July 1998 - June 2017')
 par(new=TRUE)
 nice.map(lon,rev(lat),4)
-lines(c(180,240),c(5,5),lwd=7)
+lines(c(180,240),c(15,15),lwd=7)
 lines(c(180,240),c(45,45),lwd=7)
-lines(c(180,180),c(5,45),lwd=7)
-lines(c(240,240),c(5,45),lwd=7)
-lines(c(180,240),c(5,5),lwd=5.5,col="white")
+lines(c(180,180),c(15,45),lwd=7)
+lines(c(240,240),c(15,45),lwd=7)
+lines(c(180,240),c(15,15),lwd=5.5,col="white")
 lines(c(180,240),c(45,45),lwd=5.5,col="white")
-lines(c(180,180),c(5,45),lwd=5.5,col="white")
-lines(c(240,240),c(5,45),lwd=5.5,col="white")
+lines(c(180,180),c(15,45),lwd=5.5,col="white")
+lines(c(240,240),c(15,45),lwd=5.5,col="white")
 axis(2)
 axis(1,seq(120,260,10),c(seq(120,180,10),seq(190,260,10)-360))
 box()
@@ -77,14 +77,14 @@ par(mar=c(3,3,3,1))
 image(lon,rev(lat),anom[,dim(anom)[2]:1],col=c,breaks=breaks,xlab='',ylab='',axes=FALSE,xaxs='i',yaxs='i',asp=1,xlim=c(120,260),ylim=c(0,55),main='July 2017 - June 2018 Anomaly')
 par(new=TRUE)
 nice.map(lon,rev(lat),4)
-lines(c(180,240),c(5,5),lwd=7)
+lines(c(180,240),c(15,15),lwd=7)
 lines(c(180,240),c(45,45),lwd=7)
-lines(c(180,180),c(5,45),lwd=7)
-lines(c(240,240),c(5,45),lwd=7)
-lines(c(180,240),c(5,5),lwd=5.5,col="white")
+lines(c(180,180),c(15,45),lwd=7)
+lines(c(240,240),c(15,45),lwd=7)
+lines(c(180,240),c(15,15),lwd=5.5,col="white")
 lines(c(180,240),c(45,45),lwd=5.5,col="white")
-lines(c(180,180),c(5,45),lwd=5.5,col="white")
-lines(c(240,240),c(5,45),lwd=5.5,col="white")
+lines(c(180,180),c(15,45),lwd=5.5,col="white")
+lines(c(240,240),c(15,45),lwd=5.5,col="white")
 axis(2)
 axis(1,seq(120,260,10),c(seq(120,180,10),seq(190,260,10)-360))
 
@@ -95,7 +95,7 @@ box()
 
 ###################################################################################################################################################
 
-T=read.table('mean-chl-07-1997-06-2018-esa-5-45N-180-240E.dat',header=TRUE)
+T=read.table('mean-chl-07-1997-06-2018-esa-15-45N-180-240E.dat',header=TRUE)
 n=dim(T)[1]
 
 plot(1:(n-12),T[1:(n-12),1],type='l',axes=FALSE,xlab='',main='Chl a conc.',ylab='(mg/m^3)',lwd=3,xlim=c(1,n))
@@ -125,22 +125,5 @@ axis(2)
 axis(1,seq(7,n,12),1999:2018)
 box()
 lines(c(-10,n+10),c(0,0))
-
-
-
-##################################################################
-T1=read.table('mean-chl-cci-1997-2016.dat',header=TRUE)
-n1=dim(T1)[1]
-T2=read.table('mean-chl-viirs-msl12-2012-2017.dat',header=TRUE)
-n2=dim(T2)[1]
-
-
-
-plot(9:(n1+8),T1[,1],type='o',axes=FALSE,xlab='',main='Chl a conc.',ylab='(mg/m^3)',pch=20,lwd=2,xlim=c(1,252))
-lines(181:(n2+180),T2[,1],col=4,lwd=2)
-points(181:(n2+180),T2[,1],col=4,pch=20)
-axis(2)
-axis(1,seq(1,252,12),1997:2017)
-box()
 
 
