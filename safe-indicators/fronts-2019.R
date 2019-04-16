@@ -37,8 +37,8 @@ v1=nc$var[[1]]
 chl2018=ncvar_get(nc,v1)
 
 
-#postscript('fronts.ps',width=7.7,height=6.2)
-X11(width=7.7,height=6.2)
+postscript('fronts.ps',width=7.7,height=6.2)
+#X11(width=7.7,height=6.2)
 nice.map(lon1,lat1,4)
 #sst
 par(new=TRUE)
@@ -53,5 +53,7 @@ contour(lon2,lat2,chl2018,levels=0.2,xaxs='i',yaxs='i',asp=1,xlim=c(180,240),yli
 
 axis(1,seq(180,240,10),c('180ºE','170ºW','160ºW','150ºW','140ºW','130ºW','120ºW'))
 axis(2,seq(10,40,10),c('10ºN','20ºN','30ºN','40ºN'),las=1)
+
+dev.off()
 
 
