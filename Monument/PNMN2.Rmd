@@ -1,0 +1,578 @@
+---
+title: "Indicators Monument"
+author: "Melanie Abecassis"
+date: "07/30/2019"
+output:
+  html_document:
+    highlight: pygments
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+    tod_depth: 3
+  html_notebook:
+    toc: yes
+    tod_depth: 3
+    toc_float: 
+      collapsed: false
+      smooth_scroll: true
+  pdf_document:
+    toc: yes
+---
+  
+<script>
+$(document).ready(function() {
+  $items = $('div#TOC li');
+  $items.each(function(idx) {
+    num_ul = $(this).parentsUntil('#TOC').length;
+    $(this).css({'text-indent': num_ul * 10, 'padding-left': 0});
+  });
+    
+});
+</script>
+  
+#### Revised on: `r format(Sys.time(), "%d %B, %Y")`
+  
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=14, fig.height=7, warning=FALSE,message=FALSE,tidy=TRUE)
+knitr::opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+```{r}
+library(ncdf4)
+library(knitr)
+library(jpeg)
+```
+
+
+# SST
+
+SST data used:  
+NOAA Coral Reef Watch "CoralTemp", 1985-2018.  
+More info: https://coralreefwatch.noaa.gov/product/5km/index_5km_sst.php  
+  
+
+
+```{r}
+nc=nc_open('SST/CRW_sst_v1_0_monthly_21-30N-180-200E-1985-2018.nc')
+v1=nc$var[[1]]
+T1=ncvar_get(nc,v1)
+dates=as.POSIXlt(v1$dim[[3]]$vals,origin='1970-01-01',tz='GMT')
+
+lon=v1$dim[[1]]$vals
+lat=v1$dim[[2]]$vals
+
+```
+
+## a. time-series of mean SST
+
+```{r}
+#time-series : 
+n=dim(T1)[3]
+ts=rep(NA,n)
+for (i in 1:n) ts[i]=mean(T1[,,i],na.rm=TRUE)
+
+plot(1:n,ts[1:n],type='l',axes=FALSE,xlab='',main='SST',ylab='(ºC)',pch=20,lwd=2, col=1)
+axis(2)
+axis(1,seq(1,n,12),1985:2018)
+box()
+
+#linear regression
+time=1:n
+m1=lm(ts~time)
+summary(m1)
+
+lines(m1$coefficients[1]+m1$coefficients[2]*time,col=2,lwd=2)
+
+```
+
+## b. time-series of SST anomalies
+
+```{r}
+# anomaly
+m=rep(NA,12)
+for (i in 1:12) {
+    ind=seq(i,n,12)
+    m[i]=mean(ts[ind])
+}
+
+y=n/12  #  # of years
+
+mtot=rep(m,y)
+#lines(1:n,mtot,col=2,lwd=2)
+
+anom=ts-mtot
+
+plot(1:n,anom[1:n],type='l',axes=FALSE,xlab='',main='SST anomalies',ylab='(ºC)',pch=20,lwd=2,xlim=c(1,n))
+axis(2)
+axis(1,seq(1,n,12),1985:2018)
+box()
+lines(c(-10,n+10),c(0,0))
+```
+
+## c. data export
+
+```{r,eval=FALSE}
+
+tot=data.frame(as.character(dates),ts,anom)
+names(tot)=c("date","mean_sst","sst_anomaly")
+write.csv(tot,'sst-1985-2018-coraltemp-v1.dat',row.names=FALSE)
+
+```
+
+
+## d. Map of mean SST, for 1985-2008 and Anomaly for 2009-2018
+
+```{r, eval=FALSE}
+#climatology and anomaly maps of SST in longline fishing ground
+
+source('../../../plotmaps-GMT2.R')
+source('../../../scale.R')
+
+
+library(ncdf4)
+library(httr)
+
+nc=nc_open('SST/CRW_sst_v1_0_1985-2008-clim_18-33N-175-208E.nc')
+v1=nc$var[[1]]
+clim=ncvar_get(nc,v1)
+lon=v1$dim[[1]]$vals
+lat=v1$dim[[2]]$vals
+
+#climatology
+breaks=seq(19,28,0.05)
+n=length(breaks)-1
+
+#define a color palette
+jet.colors <-colorRampPalette(c("blue", "#007FFF", "cyan","#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+#set color scale using the jet.colors palette
+c=jet.colors(n)
+
+#X11(width=11.11,height=5.36)
+layout(matrix(c(1,2,3,0,4,0), nrow=1, ncol=2), widths=c(9,1), heights=4)
+
+par(mar=c(3,3,3,1))
+image(lon,lat,clim,col=c,breaks=breaks,xlab='',ylab='',axes=FALSE,xaxs='i',yaxs='i',asp=1,xlim=c(175,208),ylim=c(18,33),main='Climatology : 1985 - 2008')
+par(new=TRUE)
+nice.map(lon,lat,1)
+axis(2)
+axis(1,seq(176,220,2),seq(176,220,2)-360)
+box()
+
+T=read.csv('bounds.csv',header=FALSE)
+T[,1]=T[,1]+360
+lines(T[,1],T[,2],lwd=4)
+lines(T[,1],T[,2],lwd=3,col='white')
+
+T2=read.csv('expanded_bounds.csv',header=FALSE)
+I=which(T2[,1]<0)
+T2[I,1]=T2[I,1]+360
+lines(T2[,1],T2[,2],lwd=4)
+lines(T2[,1],T2[,2],lwd=3,col='lightgray')
+    
+T3=read.csv('nwhi.csv',header=FALSE)
+I=which(T3[,1]<0)
+T3[I,1]=T3[I,1]+360
+for (i in 1:max(T3[,3])) {
+    J=which(T3[,3]==i)
+    lines(T3[J,1],T3[J,2])
+}
+
+par(mar=c(3,1,3,3))
+image.scale(clim, col=c, breaks=breaks, horiz=FALSE,xlab='',ylab='',main='ºC',yaxt='n',las=1)
+axis(4,las=2,tick=TRUE)
+box()
+
+#anomaly
+
+nc=nc_open('SST/CRW_sst_v1_0_2009-2018-clim_18-33N-175-208E.nc')
+v1=nc$var[[1]]
+new=ncvar_get(nc,v1)
+lon=v1$dim[[1]]$vals
+lat=v1$dim[[2]]$vals
+
+anom=new-clim
+
+#anom
+breaks=c(seq(-0.65,-0.1,0.01),0,seq(0.1,0.65,0.01))
+n=length(breaks)-1
+
+#define a color palette
+br.colors <-colorRampPalette(c("blue", "cyan","white", "#FF6666", "red"))
+#set color scale using the jet.colors palette
+c=br.colors(n)
+
+#X11(width=10.8,height=5.27)
+layout(matrix(c(1,2,3,0,4,0), nrow=1, ncol=2), widths=c(9,1), heights=4)
+
+par(mar=c(3,3,3,1))
+image(lon,lat,anom,col=c,breaks=breaks,xlab='',ylab='',axes=FALSE,xaxs='i',yaxs='i',asp=1,xlim=c(175,208),ylim=c(18,33),main='2009-2018')
+par(new=TRUE)
+nice.map(lon,lat,1)
+axis(2)
+axis(1,seq(176,220,2),c(seq(176,180,2),seq(182,220,2)-360))
+box()
+
+T=read.csv('bounds.csv',header=FALSE)
+T[,1]=T[,1]+360
+lines(T[,1],T[,2],lwd=4)
+lines(T[,1],T[,2],lwd=3,col='white')
+
+T2=read.csv('expanded_bounds.csv',header=FALSE)
+I=which(T2[,1]<0)
+T2[I,1]=T2[I,1]+360
+lines(T2[,1],T2[,2],lwd=4)
+lines(T2[,1],T2[,2],lwd=3,col='lightgray')
+
+T3=read.csv('nwhi.csv',header=FALSE)
+I=which(T3[,1]<0)
+T3[I,1]=T3[I,1]+360
+for (i in 1:max(T3[,3])) {
+    J=which(T3[,3]==i)
+    lines(T3[J,1],T3[J,2])
+}
+par(mar=c(3,1,3,3))
+image.scale(anom, col=c, breaks=breaks, horiz=FALSE,xlab='',ylab='',main='ºC',yaxt='n',las=1)
+axis(4,las=2,tick=TRUE)
+box()
+```
+
+![](SST/mean-sst-1985-2008.jpg)
+
+![](SST/anom-sst-2009-2018.jpg)
+
+
+# Chlorophyll concentration
+
+Data used: ESA CCI ocean color data, v.4.2, 1998 - 2019.  
+More info: https://esa-oceancolour-cci.org/  
+  
+
+```{r}
+nc=nc_open('CHL/esa-cci-chla-monthly_d430_cbad_5877.nc')
+v1=nc$var[[1]]
+T1=ncvar_get(nc,v1)
+dates=as.POSIXlt(v1$dim[[3]]$vals,origin='1970-01-01',tz='GMT')
+
+lon=v1$dim[[1]]$vals
+lat=v1$dim[[2]]$vals
+
+```
+
+## a. time-series of mean CHL
+
+```{r}
+#time-series : 
+n=dim(T1)[3]
+ts=rep(NA,n)
+for (i in 1:n) ts[i]=mean(T1[,,i],na.rm=TRUE)
+
+plot(1:n,ts[1:n],type='l',axes=FALSE,xlab='',main='Chl conc.',ylab='(mg/m^3)',pch=20,lwd=2, col=1)
+axis(2)
+axis(1,seq(5,n,12),1998:2018)
+box()
+
+#linear regression
+time=1:n
+m1=lm(ts~time)
+
+summary(m1)
+#lines(m1$coefficients[1]+m1$coefficients[2]*time,col=2,lwd=2)
+
+```
+
+## b. time-series of Chl anomalies
+
+```{r}
+
+ts2=ts[11:length(ts)]  #from july 1998 to june 2018
+n=length(ts2)
+
+# anomaly
+m=rep(NA,12)
+for (i in 1:12) {
+    ind=seq(i,n,12)
+    m[i]=mean(ts[ind])
+}
+
+y=n/12  #  # of years
+
+mtot=rep(m,y)
+#lines(1:n,mtot,col=2,lwd=2)
+
+anom=ts2-mtot
+
+plot(1:n,anom[1:n],type='l',axes=FALSE,xlab='',main='CHL conc.',ylab='(mg/m^3)',pch=20,lwd=2,xlim=c(1,n))
+axis(2)
+axis(1,seq(7,n,12),1999:2018)
+box()
+lines(c(-10,n+10),c(0,0))
+```
+
+## c. data export
+
+```{r,eval=FALSE}
+
+tot=data.frame(as.character(dates[11:length(ts)]),ts2,anom)
+names(tot)=c("date","mean_chl","chl_anomaly")
+write.csv(tot,'chl-1998-2018-coraltemp-v1.dat',row.names=FALSE)
+
+```
+
+
+## d. Map of mean CHL for 1998-2008 and Anomaly for 2009-2018
+
+```{r, eval=FALSE}
+#climatology and anomaly maps of CHL in longline fishing ground
+
+source('../../../plotmaps-GMT2.R')
+source('../../../scale.R')
+
+
+library(ncdf4)
+library(httr)
+
+nc=nc_open('CHL/esa-cci-chla-1998-2008-clim-v4-2_18-33N-175-208E.nc')
+v1=nc$var[[1]]
+clim=ncvar_get(nc,v1)
+lon=v1$dim[[1]]$vals
+lat=v1$dim[[2]]$vals
+
+#clim=apply(chl[,,131:250],c(1,2),mean,na.rm=TRUE)
+
+
+
+#climatology
+breaks=c(seq(-3.24,-1.5,0.01))
+#breaks=c(seq(-3.24,-1.5,0.01),0.05)
+n=length(breaks)-1
+
+#define a color palette
+jet.colors <-colorRampPalette(c("blue", "#007FFF", "cyan","#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+#set color scale using the jet.colors palette
+c=jet.colors(n)
+
+X11(width=11.11,height=5.36)
+layout(matrix(c(1,2,3,0,4,0), nrow=1, ncol=2), widths=c(9,1), heights=4)
+
+par(mar=c(3,3,3,1))
+image(lon,rev(lat),log(clim[,dim(clim)[2]:1]),col=c,breaks=breaks,xlab='',ylab='',axes=FALSE,xaxs='i',yaxs='i',asp=1,xlim=c(175,208),ylim=c(18,33),main='Climatology : 1998 - 2008')
+par(new=TRUE)
+nice.map(lon,rev(lat),1)
+axis(2)
+axis(1,seq(176,208,2),c(seq(176,180,2),seq(182,208,2)-360))
+box()
+
+T = read.csv("bounds.csv", header = FALSE)
+T[, 1] = T[, 1] + 360
+lines(T[, 1], T[, 2], lwd = 4)
+lines(T[, 1], T[, 2], lwd = 3, col = "white")
+
+T2 = read.csv("expanded_bounds.csv", header = FALSE)
+I = which(T2[, 1] < 0)
+T2[I, 1] = T2[I, 1] + 360
+lines(T2[, 1], T2[, 2], lwd = 4)
+lines(T2[, 1], T2[, 2], lwd = 3, col = "lightgray")
+
+T3 = read.csv("nwhi.csv", header = FALSE)
+I = which(T3[, 1] < 0)
+T3[I, 1] = T3[I, 1] + 360
+for (i in 1:max(T3[, 3])) {
+    J = which(T3[, 3] == i)
+    lines(T3[J, 1], T3[J, 2])
+}
+
+par(mar=c(3,1,3,3))
+#image.scale(clim, col=c, breaks=breaks, horiz=FALSE,xlab='',ylab='',main='mg/m³',yaxt='n',las=1)
+image.scale(clim, col=c, breaks=exp(breaks), horiz=FALSE,xlab='',ylab='',main='mg/m³',yaxt='n',las=1)
+axis(4,las=2,tick=TRUE)
+box()
+
+# anomaly
+
+nc = nc_open("CHL/esa-cci-chla-2009-2018-clim-v4-2_18-33N-175-208E.nc")
+v1 = nc$var[[1]]
+new = ncvar_get(nc, v1)
+lon = v1$dim[[1]]$vals
+lat = v1$dim[[2]]$vals
+
+anom = new - clim
+
+# anom
+breaks = c(-0.41,seq(-0.028, 0.028, 0.001),0.41)
+n = length(breaks) - 1
+
+# define a color palette
+br.colors <- colorRampPalette(c("blue", "cyan", "white", "#FF6666", "red"))
+# set color scale using the jet.colors palette
+c = br.colors(n)
+
+X11(width=11.11,height=5.36)
+layout(matrix(c(1, 2, 3, 0, 4, 0), nrow = 1, ncol = 2), widths = c(9, 1), heights = 4)
+
+par(mar = c(3, 3, 3, 1))
+image(lon,rev(lat),anom[,dim(anom)[2]:1], col = c, breaks = breaks, xlab = "", ylab = "", axes = FALSE, 
+    xaxs = "i", yaxs = "i", asp = 1, xlim = c(175, 208), ylim = c(18, 33), main = "2009-2018")
+par(new = TRUE)
+nice.map(lon, rev(lat), 1)
+axis(2)
+axis(1, seq(176, 208, 2), c(seq(176,180,2),seq(182, 208, 2) - 360))
+box()
+
+T = read.csv("bounds.csv", header = FALSE)
+T[, 1] = T[, 1] + 360
+lines(T[, 1], T[, 2], lwd = 4)
+lines(T[, 1], T[, 2], lwd = 3, col = "white")
+
+T2 = read.csv("expanded_bounds.csv", header = FALSE)
+I = which(T2[, 1] < 0)
+T2[I, 1] = T2[I, 1] + 360
+lines(T2[, 1], T2[, 2], lwd = 4)
+lines(T2[, 1], T2[, 2], lwd = 3, col = "lightgray")
+
+T3 = read.csv("nwhi.csv", header = FALSE)
+I = which(T3[, 1] < 0)
+T3[I, 1] = T3[I, 1] + 360
+for (i in 1:max(T3[, 3])) {
+    J = which(T3[, 3] == i)
+    lines(T3[J, 1], T3[J, 2])
+}
+
+
+par(mar = c(3, 1, 3, 3))
+image.scale(anom, col = c, breaks = c(-0.04,seq(-0.028, 0.028, 0.001),0.04), horiz = FALSE, xlab = "", ylab = "", 
+    main = "mg/m³", yaxt = "n", las = 1)
+#axis(4,at=c(-0.04,seq(-0.028, 0.028, 0.004),0.04),c(-0.41,seq(-0.028, 0.028, 0.004),0.41), las = 1)
+axis(4,las=1)
+box()
+
+
+
+```
+![](CHL/mean-chl-1998-2008.jpg)
+![](CHL/anom-chl-2009-2018.jpg)
+
+# Fronts
+
+## a. STF
+
+The subtropical front is the 18C isotherm. We typically look at its position in quarter 1 for the longline fishery.
+
+```{r, eval=FALSE}
+nc = nc_open("Fronts/CRW_sst_v1_0_monthly_1985-2008-18-45N-175-240E.nc")
+v1 = nc$var[[1]]
+T1 = ncvar_get(nc, v1)
+lon1 = v1$dim[[1]]$vals
+lat1= v1$dim[[2]]$vals
+
+#QUATERLY DATA - FOR STF front ! Computed for Quarter 1
+#jan-mar 1985-2008
+totq1=array(NA,dim=c(dim(T1)[1],dim(T1)[2],dim(T1)[3]/12))
+for (i in 1:(dim(T1)[3]/12)) {
+        totq1[,,i]=apply(T1[,,((i-1)*12+1):((i-1)*12+3)],c(1,2),mean,na.rm=TRUE)
+}
+
+climq1=apply(totq1,c(1,2),mean,na.rm=TRUE)
+
+
+nc = nc_open("Fronts/CRW_sst_v1_0_monthly_2009-2018-18-45N-175-240E.nc")
+v1 = nc$var[[1]]
+T2 = ncvar_get(nc, v1)
+
+#jan-mar 2009-2018
+restq1=array(NA,dim=c(dim(T2)[1],dim(T2)[2],dim(T2)[3]/12))
+for (i in 1:(dim(T2)[3]/12)) {
+        restq1[,,i]=apply(T2[,,((i-1)*12+1):((i-1)*12+3)],c(1,2),mean,na.rm=TRUE)
+}
+
+
+temp.q1=apply(restq1,c(1,2),mean,na.rm=TRUE)
+
+
+
+```
+
+## b. TZCF
+
+The TZCF is characterized by chl conc. = 0.2 mg/L
+
+```{r,eval=FALSE}
+
+#Files come from Onaga:
+/home/mabecass/OceanWatch/indicators/fronts/for_Monument.R
+
+nc=nc_open('Fronts/chl-clim-1998-2008-q1-filtered.nc')
+v1=nc$var[[1]]
+chl.climq1=ncvar_get(nc,v1)
+
+lon2=v1$dim[[1]]$vals
+lat2=v1$dim[[2]]$vals
+
+nc=nc_open('Fronts/chl-clim-2009-2018-q1-filtered.nc')
+v1=nc$var[[1]]
+chl.q1=ncvar_get(nc,v1)
+
+
+
+```
+
+
+
+```{r, eval=FALSE}
+
+X11(width = 11.11, height = 5.36)
+
+LON1=175
+LON2=240
+LAT1=18
+LAT2=45
+
+X=LON1:LON2
+Y=LAT1:LAT2
+nice.map(X,Y,1)
+
+T = read.csv("bounds.csv", header = FALSE)
+T[, 1] = T[, 1] + 360
+lines(T[, 1], T[, 2], lwd = 4)
+lines(T[, 1], T[, 2], lwd = 3, col = "white")
+
+
+T2 = read.csv("expanded_bounds.csv", header = FALSE)
+I = which(T2[, 1] < 0)
+T2[I, 1] = T2[I, 1] + 360
+lines(T2[, 1], T2[, 2], lwd = 4)
+lines(T2[, 1], T2[, 2], lwd = 3, col = "lightgray")
+
+T3 = read.csv("nwhi.csv", header = FALSE)
+I = which(T3[, 1] < 0)
+T3[I, 1] = T3[I, 1] + 360
+for (i in 1:max(T3[, 3])) {
+    J = which(T3[, 3] == i)
+    lines(T3[J, 1], T3[J, 2])
+}
+
+#sst
+par(new=TRUE)
+contour(lon1,lat1,climq1,levels=18,xaxs='i',yaxs='i',asp=1,xlim=c(LON1,LON2),ylim=c(LAT1,LAT2),axes=FALSE,lwd=2,col=2,lty=2,drawlabels=FALSE)
+par(new=TRUE)
+contour(lon1,lat1,temp.q1,levels=18,labels='',xaxs='i',yaxs='i',asp=1,xlim=c(LON1,LON2),ylim=c(LAT1,LAT2),axes=FALSE,lwd=3,col=2,lty=1,drawlabels=FALSE)
+
+
+#chl
+par(new=TRUE)
+contour(lon2,lat2,chl.climq1,levels=0.2,xaxs='i',yaxs='i',asp=1,xlim=c(LON1,LON2),ylim=c(LAT1,LAT2),axes=FALSE,lwd=2,col=4,lty=2,drawlabels=FALSE)
+#contour(lon2,rev(lat2),chl.climq1[,dim(chl.climq1)[2]:1],levels=0.2,xaxs='i',yaxs='i',asp=1,xlim=c(LON1,LON2),ylim=c(LAT1,LAT2),axes=FALSE,lwd=2,col=4,lty=2,drawlabels=FALSE)
+par(new=TRUE)
+#contour(lon2,rev(lat2),chl.q1[,dim(chl.q1)[2]:1],levels=0.2,xaxs='i',yaxs='i',asp=1,xlim=c(LON1,LON2),ylim=c(LAT1,LAT2),axes=FALSE,lwd=3,col=4,lty=1,drawlabels=FALSE)
+contour(lon2,lat2,chl.q1,levels=0.2,xaxs='i',yaxs='i',asp=1,xlim=c(LON1,LON2),ylim=c(LAT1,LAT2),axes=FALSE,lwd=3,col=4,lty=1,drawlabels=FALSE)
+
+axis(1,seq(180,240,10),c('180ºE','170ºW','160ºW','150ºW','140ºW','130ºW','120ºW'))
+axis(2,seq(10,40,10),c('10ºN','20ºN','30ºN','40ºN'),las=1)
+```
+![](Fronts/fronts.jpg)
+
+
+
+
+
+
