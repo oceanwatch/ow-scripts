@@ -24,7 +24,7 @@ sst2018=ncvar_get(nc,v1)
 #sst2018=as.matrix(sst2018)
 
 
-#come from Onaga, CHL/chl-esa2.R
+#come from Onaga, /home/mabecass/OceanWatch/indicators/CHL/chl-esa2.R
 nc=nc_open('chl-clim-1999-2017-5-45N-180-240E-esa-q1-filtered.nc')
 v1=nc$var[[1]]
 chl=ncvar_get(nc,v1)
