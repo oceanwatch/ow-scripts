@@ -48,12 +48,42 @@ library(jpeg)
 # SST
 
 SST data used:  
-NOAA Coral Reef Watch "CoralTemp", 1985-2018.  
+Monthly NOAA Coral Reef Watch "CoralTemp", 1985-2018.  
 More info: https://coralreefwatch.noaa.gov/product/5km/index_5km_sst.php  
   
 
+Let's extract SST data within the Monument shapefile.
 
 ```{r}
+
+library(rerddap) 
+library(rerddapXtracto)
+
+poly=read.csv('expanded_bounds.csv',header=FALSE)
+I=which(poly[,1]<0)
+poly[I,1]=poly[I,1]+360
+names(poly)=c("lon","lat")
+
+ERDDAP_Node="https://oceanwatch.pifsc.noaa.gov/erddap/"
+dataInfo <- rerddap::info('CRW_sst_v1_0_monthly', url=ERDDAP_Node)
+
+parameter=dataInfo$variable$variable_name[1]
+
+xcoord <- poly$lon 
+ycoord <- poly$lat
+
+tcoord <- c("1985-01-02", "2018-12-01")
+
+sst <- rxtractogon (dataInfo, parameter=parameter, xcoord=xcoord, ycoord=ycoord, tcoord=tcoord)
+
+
+```
+
+
+
+
+
+```{r, include=FALSE}
 nc=nc_open('SST/CRW_sst_v1_0_monthly_21-30N-180-200E-1985-2018.nc')
 v1=nc$var[[1]]
 T1=ncvar_get(nc,v1)
@@ -68,9 +98,9 @@ lat=v1$dim[[2]]$vals
 
 ```{r}
 #time-series : 
-n=dim(T1)[3]
+n=dim(sst$analysed_sst)[3]
 ts=rep(NA,n)
-for (i in 1:n) ts[i]=mean(T1[,,i],na.rm=TRUE)
+for (i in 1:n) ts[i]=mean(sst$analysed_sst[,,i],na.rm=TRUE)
 
 plot(1:n,ts[1:n],type='l',axes=FALSE,xlab='',main='SST',ylab='(ºC)',pch=20,lwd=2, col=1)
 axis(2)
@@ -114,9 +144,9 @@ lines(c(-10,n+10),c(0,0))
 
 ```{r,eval=FALSE}
 
-tot=data.frame(as.character(dates),ts,anom)
+tot=data.frame(sst$time,ts,anom)
 names(tot)=c("date","mean_sst","sst_anomaly")
-write.csv(tot,'sst-1985-2018-coraltemp-v1.dat',row.names=FALSE)
+write.csv(tot,'sst-1985-2018-coraltemp-v1-Monuments-bounds-only.dat',row.names=FALSE)
 
 ```
 
@@ -244,11 +274,35 @@ box()
 
 # Chlorophyll concentration
 
-Data used: ESA CCI ocean color data, v.4.2, 1998 - 2019.  
+Data used: Monthly ESA CCI ocean color data, v.4.2, 1998 - 2019.  
 More info: https://esa-oceancolour-cci.org/  
-  
 
+Let's extract CHL data within the Monument shapefile.
+  
 ```{r}
+library(rerddap) 
+library(rerddapXtracto)
+
+poly=read.csv('expanded_bounds.csv',header=FALSE)
+I=which(poly[,1]<0)
+poly[I,1]=poly[I,1]+360
+names(poly)=c("lon","lat")
+
+ERDDAP_Node="https://oceanwatch.pifsc.noaa.gov/erddap/"
+dataInfo <- rerddap::info('esa-cci-chla-monthly-v4-2', url=ERDDAP_Node)
+
+parameter=dataInfo$variable$variable_name[1]
+
+xcoord <- poly$lon 
+ycoord <- poly$lat
+
+tcoord <- c("1998-01-02", "2018-12-01")
+
+chl <- rxtractogon (dataInfo, parameter=parameter, xcoord=xcoord, ycoord=ycoord, tcoord=tcoord)
+```
+
+
+```{r, include=FALSE}
 nc=nc_open('CHL/esa-cci-chla-monthly_d430_cbad_5877.nc')
 v1=nc$var[[1]]
 T1=ncvar_get(nc,v1)
@@ -263,13 +317,13 @@ lat=v1$dim[[2]]$vals
 
 ```{r}
 #time-series : 
-n=dim(T1)[3]
+n=dim(chl$chlor_a)[3]
 ts=rep(NA,n)
-for (i in 1:n) ts[i]=mean(T1[,,i],na.rm=TRUE)
+for (i in 1:n) ts[i]=mean(chl$chlor_a[,,i],na.rm=TRUE)
 
 plot(1:n,ts[1:n],type='l',axes=FALSE,xlab='',main='Chl conc.',ylab='(mg/m^3)',pch=20,lwd=2, col=1)
 axis(2)
-axis(1,seq(5,n,12),1998:2018)
+axis(1,seq(1,n,12),1998:2018)
 box()
 
 #linear regression
@@ -285,8 +339,8 @@ summary(m1)
 
 ```{r}
 
-ts2=ts[11:length(ts)]  #from july 1998 to june 2018
-n=length(ts2)
+#ts2=ts[11:length(ts)]  #from july 1998 to june 2018
+#n=length(ts2)
 
 # anomaly
 m=rep(NA,12)
@@ -300,11 +354,11 @@ y=n/12  #  # of years
 mtot=rep(m,y)
 #lines(1:n,mtot,col=2,lwd=2)
 
-anom=ts2-mtot
+anom=ts-mtot
 
 plot(1:n,anom[1:n],type='l',axes=FALSE,xlab='',main='CHL conc.',ylab='(mg/m^3)',pch=20,lwd=2,xlim=c(1,n))
 axis(2)
-axis(1,seq(7,n,12),1999:2018)
+axis(1,seq(1,n,12),1998:2018)
 box()
 lines(c(-10,n+10),c(0,0))
 ```
@@ -313,9 +367,9 @@ lines(c(-10,n+10),c(0,0))
 
 ```{r,eval=FALSE}
 
-tot=data.frame(as.character(dates[11:length(ts)]),ts2,anom)
+tot=data.frame(chl$time,ts,anom)
 names(tot)=c("date","mean_chl","chl_anomaly")
-write.csv(tot,'chl-1998-2018-coraltemp-v1.dat',row.names=FALSE)
+write.csv(tot,'chl-1998-2018-coraltemp-v1-Monuments-bounds-only.dat',row.names=FALSE)
 
 ```
 
