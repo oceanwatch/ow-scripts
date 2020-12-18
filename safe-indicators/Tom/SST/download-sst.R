@@ -1,5 +1,5 @@
 #script to download SST data for each archipelagic region for the SAFE report.
-# from PF5.3 and geopolar blended SST
+# from CoralTemp
 
 library(httr)
 
@@ -12,11 +12,25 @@ Mariana=c(13,21,143.95,146)
 PRIA=c(-1,7,183,201)
 Wake=c(17.7,20.7,165,168)
 
-
-names=c("AS","HB","Johnston","LI","MH","Mariana","PRIA","Wake")
+names=c("AS","Johnston","MH","Mariana","PRIA","Wake")
+#names=c("AS","HB","Johnston","LI","MH","Mariana","PRIA","Wake")
 coords=rbind(AS,HB,Johnston,LI,MH,Mariana,PRIA,Wake)
 
+for (i in 1:length(names)) {
+       print(names[i])
+       lat=coords[i,1:2]   
+       lon=coords[i,3:4]
 
+       junk=GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/CRW_sst_v1_0_1985-2018-clim.nc?analysed_sst[(1985-01-01)][(',lat[1],'):1:(',lat[2],')][(',lon[1],'):1:(',lon[2],')]',sep=''), write_disk(paste("2020/sst-",names[i],"-1985-2018-mean.nc",sep=''),overwrite=TRUE))
+       junk=GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/CRW_sst_v1_0_2019-clim.nc?analysed_sst[(2019-01-01)][(',lat[1],'):1:(',lat[2],')][(',lon[1],'):1:(',lon[2],')]',sep=''), write_disk(paste("2020/sst-",names[i],"-2019-mean.nc",sep=''),overwrite=TRUE))
+       junk=GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/CRW_sst_v1_0_monthly.nc?analysed_sst[(1985-01-01):1:(2019-12-01)][(',lat[1],'):1:(',lat[2],')][(',lon[1],'):1:(',lon[2],')]',sep=''), write_disk(paste("2020/sst-",names[i],"-1985-2019.nc",sep=''),overwrite=TRUE))
+}
+
+
+
+
+
+####################################### OLD ###################################################################
 #Pathfinder 5.3
 for (i in 1:length(names)) {
     print(names[i])
