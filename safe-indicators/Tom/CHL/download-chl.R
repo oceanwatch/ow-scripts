@@ -23,9 +23,9 @@ for (i in 1:length(names)) {
     print(names[i])
     lat=coords[i,1:2]
     lon=coords[i,3:4]
-    junk=GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/esa-cci-chla-1998-2018-clim-v4-2.nc?chlor_a[(1998-01-01T00:00:00Z):1:(1998-01-01T00:00:00Z)][(',lat[2],'):1:(',lat[1],')][(',lon[1],'):1:(',lon[2],')]',sep=''), write_disk(paste("chl-",names[i],"-1998-2018-mean.nc",sep='')))
-    junk=GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/esa-cci-chla-2019-clim-v4-2.nc?chlor_a[(2019-01-01T00:00:00Z):1:(2019-01-01T00:00:00Z)][(',lat[2],'):1:(',lat[1],')][(',lon[1],'):1:(',lon[2],')]',sep=''), write_disk(paste("chl-",names[i],"-2019-mean.nc",sep='')))
-    junk=GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/esa-cci-chla-monthly-v4-2.nc?chlor_a[(1998-01-01T00:00:00Z):1:(2019-12-01T00:00:00Z)][(',lat[2],'):1:(',lat[1],')][(',lon[1],'):1:(',lon[2],')]',sep=''), write_disk(paste("chl-",names[i],"-1998-2019.nc",sep='')))
+    junk=GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/esa-cci-chla-1998-2019-clim-v5-0.nc?chlor_a[(1998-01-01T00:00:00Z):1:(1998-01-01T00:00:00Z)][(',lat[2],'):1:(',lat[1],')][(',lon[1],'):1:(',lon[2],')]',sep=''), write_disk(paste("2021/chl-",names[i],"-1998-2019-mean.nc",sep='')))
+    junk=GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/esa-cci-chla-2020-clim-v5-0.nc?chlor_a[(2020-01-01T00:00:00Z):1:(2020-01-01T00:00:00Z)][(',lat[2],'):1:(',lat[1],')][(',lon[1],'):1:(',lon[2],')]',sep=''), write_disk(paste("2021/chl-",names[i],"-2020-mean.nc",sep='')))
+    junk=GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/esa-cci-chla-monthly-v5-0.nc?chlor_a[(1998-01-01T00:00:00Z):1:(2020-12-01T00:00:00Z)][(',lat[2],'):1:(',lat[1],')][(',lon[1],'):1:(',lon[2],')]',sep=''), write_disk(paste("2021/chl-",names[i],"-1998-2020.nc",sep='')))
 }
     
 
