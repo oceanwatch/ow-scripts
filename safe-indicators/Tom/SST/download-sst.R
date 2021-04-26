@@ -4,9 +4,9 @@
 library(httr)
 
 AS=c(-17.55,-10.05,187.45,195.05)
-HB=c(0,1,183,184)
+#HB=c(0,1,183,184)
 Johnston=c(16,17,190,192)
-LI=c(-1,7,197,201)
+#LI=c(-1,7,197,201)
 MH=c(18.5,22.5,199,206)
 Mariana=c(13,21,143.95,146)
 PRIA=c(-1,7,183,201)
@@ -14,16 +14,18 @@ Wake=c(17.7,20.7,165,168)
 
 names=c("AS","Johnston","MH","Mariana","PRIA","Wake")
 #names=c("AS","HB","Johnston","LI","MH","Mariana","PRIA","Wake")
-coords=rbind(AS,HB,Johnston,LI,MH,Mariana,PRIA,Wake)
+#coords=rbind(AS,HB,Johnston,LI,MH,Mariana,PRIA,Wake)
+coords=rbind(AS,Johnston,MH,Mariana,PRIA,Wake)
 
 for (i in 1:length(names)) {
        print(names[i])
        lat=coords[i,1:2]   
        lon=coords[i,3:4]
 
-       junk=GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/CRW_sst_v1_0_1985-2018-clim.nc?analysed_sst[(1985-01-01)][(',lat[1],'):1:(',lat[2],')][(',lon[1],'):1:(',lon[2],')]',sep=''), write_disk(paste("2020/sst-",names[i],"-1985-2018-mean.nc",sep=''),overwrite=TRUE))
-       junk=GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/CRW_sst_v1_0_2019-clim.nc?analysed_sst[(2019-01-01)][(',lat[1],'):1:(',lat[2],')][(',lon[1],'):1:(',lon[2],')]',sep=''), write_disk(paste("2020/sst-",names[i],"-2019-mean.nc",sep=''),overwrite=TRUE))
-       junk=GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/CRW_sst_v1_0_monthly.nc?analysed_sst[(1985-01-01):1:(2019-12-01)][(',lat[1],'):1:(',lat[2],')][(',lon[1],'):1:(',lon[2],')]',sep=''), write_disk(paste("2020/sst-",names[i],"-1985-2019.nc",sep=''),overwrite=TRUE))
+       url=paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/CRW_sst_v3_1_1985-2019-clim.nc?sea_surface_temperature[(1985-01-01)][(',lat[2],'):1:(',lat[1],')][(',lon[1],'):1:(',lon[2],')]',sep='')
+       junk=GET(url, write_disk(paste("2021/sst-",names[i],"-1985-2019-mean.nc",sep=''),overwrite=TRUE))
+       junk=GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/CRW_sst_v3_1_2020-clim.nc?sea_surface_temperature[(2020-01-01)][(',lat[2],'):1:(',lat[1],')][(',lon[1],'):1:(',lon[2],')]',sep=''), write_disk(paste("2021/sst-",names[i],"-2020-mean.nc",sep=''),overwrite=TRUE))
+       #junk=GET(paste('https://oceanwatch.pifsc.noaa.gov/erddap/griddap/CRW_sst_v3_1_monthly.nc?sea_surface_temperature[(1985-01-31):1:(2020-12-31)][(',lat[2],'):1:(',lat[1],')][(',lon[1],'):1:(',lon[2],')]',sep=''), write_disk(paste("2021/sst-",names[i],"-1985-2020.nc",sep=''),overwrite=TRUE))
 }
 
 
